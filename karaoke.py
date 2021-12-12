@@ -479,6 +479,10 @@ class Karaoke:
 
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, universal_newlines=True)
         for line in iter(proc.stdout.readline, b''):
+            if proc.returncode != None: 
+                self.downloading_songs.pop(song_title, None)
+                break
+
             if line != None and line != '' and line != '\n':
                 print(line)
                 r = re.compile('\[download\]\s*([\d\.]+).*')
@@ -489,6 +493,7 @@ class Karaoke:
                         progressFloat = float(progress)
                         if progressFloat == 100:
                             self.downloading_songs.pop(song_title, None)
+                            break
                         else:
                             self.downloading_songs[song_title] = progressFloat
                     except ValueError:
@@ -496,7 +501,7 @@ class Karaoke:
                         self.downloading_songs.pop(song_title, None)
         
         self.downloading_songs.pop(song_title, None)
-        return proc.returncode
+        return proc.wait()
 
     def get_download_progress(self):
         return self.downloading_songs
