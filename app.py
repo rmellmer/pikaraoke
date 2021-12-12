@@ -318,6 +318,12 @@ def browse():
 def download():
     d = request.form.to_dict()
     song = d["song-url"]
+
+    if "song-title" in d:
+        songTitle = d["song-title"]
+    else:
+        songTitle = "Unknown"
+
     user = d["song-added-by"]
     if "queue" in d and d["queue"] == "on":
         queue = True
@@ -325,7 +331,7 @@ def download():
         queue = False
 
     # download in the background since this can take a few minutes
-    t = threading.Thread(target=k.download_video, args=[song, queue, user])
+    t = threading.Thread(target=k.download_video, args=[songTitle, song, queue, user])
     t.daemon = True
     t.start()
 
@@ -342,6 +348,21 @@ def download():
     flash(flash_message, "is-info")
     return redirect(url_for("search"))
 
+
+@app.route("/downloading", methods=["GET"])
+def downloading():
+    return render_template(
+        "downloading.html", title="Downloading"
+    )
+
+
+@app.route("/download_progress", methods=["GET"])
+def download_progress():
+    response = app.response_class(
+        response=json.dumps(k.get_download_progress()),
+        mimetype='application/json'
+    )
+    return response
 
 @app.route("/qrcode")
 def qrcode():
